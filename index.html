@@ -3,28 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mein Lightwave Kalender</title>
-    <style>
-        /* Ein bisschen Styling, damit man sieht, wo der Kalender sein sollte */
-        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
-        #calendar-container { 
-            min-height: 400px; 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-    </style>
+    <title>Lightwave ERP v8.6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
+    <div id="root"></div>
 
-    <h1>Mein Kalender Projekt</h1>
+    <script type="text/babel">
+        // Hier kopierst du DEINEN Code hinein. 
+        // WICHTIG: Ich habe die "import" Zeilen entfernt, da wir die CDNs oben nutzen.
+        
+        const { useState, useEffect, useMemo } = React;
+        const { Zap, Plus, LogOut, X, ClipboardList, Trash2, Edit3, Wrench, MapPin, ChevronRight, LayoutGrid, Box, Save, Layers, PackagePlus } = lucide;
 
-    <div id="calendar-container">
-        Lade Kalender... (Falls dieser Text stehen bleibt, gibt es ein Problem im JavaScript)
-    </div>
+        // --- HINWEIS ---
+        // Damit das funktioniert, müssen die Firebase-Variablen (__firebase_config etc.) 
+        // auf deinem Server/GitHub definiert sein. 
+        // Für einen Test habe ich hier einen Platzhalter eingefügt:
+        const __firebase_config = '{}'; 
+        const __app_id = 'lightwave-test';
 
-    <script src="lightwave-kalender.js" defer></script>
+        const ROLES = { CHEF: 'Hauptchef', PROJECT_LEAD: 'Projektleiter', TECH: 'Techniker', LOGISTICS: 'Lagerist' };
+        const formatCurrency = (num) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(num || 0);
 
+        function App() {
+            // ... (Hier fügst du den Rest deiner App-Funktion ein, die du mir oben geschickt hast)
+            // HINWEIS: Da der Code oben abgeschnitten war, stelle sicher, dass die App-Funktion 
+            // korrekt schließt.
+            
+            return (
+                <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-10">
+                    <div className="text-center">
+                        <h1 className="text-4xl font-black italic uppercase">Lightwave ERP</h1>
+                        <p className="mt-4 text-slate-400">System ist bereit. Verbinde Firebase...</p>
+                        <div className="mt-8 p-4 bg-indigo-600 rounded-2xl animate-pulse">
+                            Konfiguriere Firebase Credentials...
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
+
