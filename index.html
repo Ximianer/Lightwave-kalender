@@ -9,133 +9,110 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-slate-950">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
-        // Deine echten Firebase Daten
+        // --- DEIN ORIGINALER CODE STARTET HIER ---
+        const { useState, useEffect, useMemo } = React;
+        const { Zap, Plus, LogOut, X, ClipboardList, Trash2, Edit3, Wrench, MapPin, ChevronRight, LayoutGrid, Box, Save, Layers, PackagePlus } = lucide;
+
         const firebaseConfig = {
           apiKey: "AIzaSyBex_tBXXmG3yvutD98xOBY1SSGi-C4QFw",
           authDomain: "lightwave---terminkalender.firebaseapp.com",
           projectId: "lightwave---terminkalender",
           storageBucket: "lightwave---terminkalender.firebasestorage.app",
           messagingSenderId: "607834391470",
-          appId: "1:607834391470:web:09d0bf801021b53aa67e3f",
-          measurementId: "G-TR8ZM6Y9DQ"
+          appId: "1:607834391470:web:09d0bf801021b53aa67e3f"
         };
 
-        // Firebase Initialisierung
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const appId = 'lightwave-erp-v8';
 
-        const { useState, useEffect } = React;
-        const { Zap, LogOut, ChevronRight, MapPin, Plus } = lucide;
+        const ROLES = { CHEF: 'Hauptchef', PROJECT_LEAD: 'Projektleiter', TECH: 'Techniker', LOGISTICS: 'Lagerist' };
 
+        // Die App-Funktion genau wie in deinem Code
         function App() {
-            const [isLoggedIn, setIsLoggedIn] = useState(false);
-            const [loading, setLoading] = useState(true);
-            const [events, setEvents] = useState([]);
-            const [loginForm, setLoginForm] = useState({ user: '', pass: '' });
+          const [user, setUser] = useState(null);
+          const [loading, setLoading] = useState(true);
+          const [isLoggedIn, setIsLoggedIn] = useState(false);
+          const [currentUser, setCurrentUser] = useState(null);
+          const [events, setEvents] = useState([]);
+          const [loginForm, setLoginForm] = useState({ user: '', pass: '' });
 
-            useEffect(() => {
-                // Anonym einloggen, damit wir Daten lesen können
-                auth.signInAnonymously()
-                    .then(() => {
-                        setLoading(false);
-                        // Echtzeit-Verbindung zu deinen Events
-                        return db.collection('events').onSnapshot(snapshot => {
-                            const eventData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                            setEvents(eventData);
-                        });
-                    })
-                    .catch(err => console.error("Firebase Fehler:", err));
-            }, []);
+          useEffect(() => {
+            auth.onAuthStateChanged((u) => { setUser(u); setLoading(false); });
+            auth.signInAnonymously();
+          }, []);
 
-            const handleLogin = (e) => {
-                e.preventDefault();
-                // Einfacher Check: admin / 123
-                if (loginForm.user.toLowerCase() === 'admin' && loginForm.pass === '123') {
-                    setIsLoggedIn(true);
-                } else {
-                    alert("Falsche Zugangsdaten (Tipp: admin / 123)");
-                }
-            };
+          useEffect(() => {
+            if (!user) return;
+            // Verbindung zu deinen Sammlungen
+            const unsub = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('events')
+              .onSnapshot(s => setEvents(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+            return () => unsub();
+          }, [user]);
 
-            if (loading) return <div className="h-screen flex items-center justify-center text-white font-black animate-pulse uppercase tracking-widest">Systemstart...</div>;
+          const handleLogin = (e) => {
+            e.preventDefault();
+            if (loginForm.user.toLowerCase() === 'admin' && loginForm.pass === '123') {
+              setCurrentUser({ id: 'ADMIN', username: 'Administrator', role: ROLES.CHEF });
+              setIsLoggedIn(true);
+            }
+          };
 
-            if (!isLoggedIn) return (
-                <div className="h-screen flex items-center justify-center p-6 bg-slate-950">
-                    <div className="bg-slate-900 p-10 rounded-[3rem] border border-slate-800 shadow-2xl w-full max-w-sm text-center">
-                        <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/20 mx-auto mb-8 rotate-3">
-                            <Zap className="text-white" size={40} fill="currentColor" />
-                        </div>
-                        <h1 className="text-3xl font-black text-white mb-2 tracking-tighter uppercase italic">Lightwave <span className="text-indigo-500">ERP</span></h1>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mb-10">Access v8.6</p>
-                        
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <input className="w-full bg-slate-800 border-none p-4 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-indigo-500 transition-all" placeholder="BENUTZER" value={loginForm.user} onChange={e => setLoginForm({...loginForm, user: e.target.value})} />
-                            <input className="w-full bg-slate-800 border-none p-4 rounded-2xl text-white font-bold outline-none focus:ring-2 ring-indigo-500 transition-all" type="password" placeholder="PASSWORT" value={loginForm.pass} onChange={e => setLoginForm({...loginForm, pass: e.target.value})} />
-                            <button className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-indigo-500/20 uppercase text-xs tracking-widest hover:bg-indigo-500 active:scale-95 transition-all">Anmelden</button>
-                        </form>
+          if (loading) return <div className="h-screen flex items-center justify-center bg-slate-900 text-white font-black animate-pulse">Systemstart...</div>;
+
+          if (!isLoggedIn) return (
+            <div className="h-screen flex items-center justify-center bg-slate-950 p-6">
+              <div className="bg-slate-900 p-10 rounded-[3rem] border border-slate-800 shadow-2xl w-full max-w-sm text-center">
+                <Zap className="text-indigo-500 mx-auto mb-4" size={40} />
+                <h1 className="text-white text-2xl font-black mb-6 uppercase italic">Lightwave ERP</h1>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <input className="w-full bg-slate-800 p-4 rounded-2xl text-white outline-none" placeholder="BENUTZER" value={loginForm.user} onChange={e => setLoginForm({...loginForm, user: e.target.value})} />
+                  <input className="w-full bg-slate-800 p-4 rounded-2xl text-white outline-none" type="password" placeholder="PASSWORT" value={loginForm.pass} onChange={e => setLoginForm({...loginForm, pass: e.target.value})} />
+                  <button className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black uppercase">Anmelden</button>
+                </form>
+              </div>
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-slate-50 text-slate-900">
+                <nav className="bg-white border-b p-4 flex justify-between items-center shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <Zap className="text-indigo-600" />
+                        <span className="font-black text-lg uppercase">Lightwave</span>
                     </div>
-                </div>
-            );
-
-            return (
-                <div className="min-h-screen bg-slate-50 text-slate-900 pb-32">
-                    <nav className="bg-white/70 backdrop-blur-xl sticky top-0 z-40 border-b p-4 flex justify-between items-center shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
-                                <Zap className="text-white" size={20} fill="currentColor" />
+                    <button onClick={() => setIsLoggedIn(false)} className="p-3 bg-slate-100 rounded-2xl"><LogOut size={20}/></button>
+                </nav>
+                <main className="max-w-4xl mx-auto p-6">
+                    <h2 className="text-4xl font-black uppercase italic mb-8">Zeitplan</h2>
+                    <div className="grid gap-4">
+                        {events.map(ev => (
+                            <div key={ev.id} className="bg-white p-6 rounded-[2rem] border shadow-sm flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-xl font-black uppercase">{ev.title}</h3>
+                                    <p className="text-slate-400 font-bold"><MapPin size={12} className="inline"/> {ev.location}</p>
+                                </div>
+                                <ChevronRight className="text-indigo-600" />
                             </div>
-                            <span className="font-black text-lg tracking-tighter uppercase block leading-none">Lightwave</span>
-                        </div>
-                        <button onClick={() => setIsLoggedIn(false)} className="p-3 bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-2xl transition-all">
-                            <LogOut size={20}/>
-                        </button>
-                    </nav>
-
-                    <main className="max-w-4xl mx-auto p-6 space-y-8">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-4xl font-black tracking-tighter uppercase italic">Zeitplan</h2>
-                        </div>
-                        
-                        <div className="grid gap-4">
-                            {events.length > 0 ? events.map(ev => (
-                                <div key={ev.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex justify-between items-center group cursor-pointer hover:shadow-xl transition-all">
-                                    <div className="flex gap-6 items-center">
-                                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex flex-col items-center justify-center border group-hover:bg-indigo-50 transition-colors">
-                                            <span className="text-2xl font-black text-slate-900">{ev.date || "!"}</span>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-black uppercase text-slate-800 tracking-tight">{ev.title || "Unbenanntes Event"}</h3>
-                                            <p className="text-xs font-bold text-slate-400 flex items-center gap-1"><MapPin size={12}/> {ev.location || "Kein Ort"}</p>
-                                        </div>
-                                    </div>
-                                    <ChevronRight className="text-slate-300 group-hover:text-indigo-600 transition-all" />
-                                </div>
-                            )) : (
-                                <div className="text-center py-20 text-slate-300 font-bold uppercase tracking-widest border-2 border-dashed rounded-[3rem]">
-                                    Warten auf Daten aus Firestore...
-                                </div>
-                            )}
-                        </div>
-                    </main>
-                </div>
-            );
+                        ))}
+                    </div>
+                </main>
+            </div>
+          );
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
-        
-        // Lucide Icons initialisieren
-        setTimeout(() => { if(window.lucide) window.lucide.createIcons(); }, 1000);
+        setTimeout(() => { lucide.createIcons(); }, 1000);
     </script>
 </body>
 </html>
